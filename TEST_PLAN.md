@@ -158,4 +158,4 @@ Testing the Unlimited Monthly Ride Pack purchase flow, pack display, auto-renew 
 2. **Test a second route** — confirm the ₹5,700 price is route-dependent (not a single-route misconfiguration) to strengthen BUG-002.
 3. **Verify ride cap enforcement** — after buying, book >50 rides (if feasible) to confirm whether `no_of_rides: 50` is enforced or display-only.
 4. **Payment failure path** — cancel mid-payment at the gateway, verify no pack is issued and no charge occurs.
-5. **Run the Playwright suite end-to-end** on a Windows machine with Chrome to confirm all 4 tests execute as expected (T1/T2 green, T3/T4 expected-fail).
+5. ~~**Run the Playwright suite end-to-end**~~ Done — all 4 tests pass (T1/T2 green, T3/T4 expected-fail confirmed on 2026-11-05).

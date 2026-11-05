@@ -11,7 +11,7 @@
 - **Severity:** P1
 - **Severity rationale:** If the 50-ride cap is enforced, the core product promise is broken. A daily commuter doing round trips (2/day x 22 workdays = 44 rides minimum, up to 60 for 30 days) can exceed the cap. A rider who bought "Unlimited" and gets cut off at ride 51 loses their commute and trust. Even if display-only, the per-ride price (₹114) misleads the rider about what "unlimited" means.
 - **Area / feature:** Rides / Pack definition
-- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: 72084***33
+- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: XXXXXXXX33
 - **PRD reference:** §4 — "Unlimited means unlimited: the rider can ride their route every day, with no cap on the number of rides in the validity window."
 
 ### Steps to reproduce
@@ -51,7 +51,7 @@ Reproduces 100%. The slug says "unlimited" but the data model caps it at 50. Eit
 - **Severity:** P1
 - **Severity rationale:** Rider charged 90% more than the documented price. If the PRD is what sales/marketing will publish, every buyer sees a different price than advertised. If real money flows at ₹5,700 when the promise is ₹3,000, that's a support fire and potential regulatory issue.
 - **Area / feature:** Pricing
-- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: 72084***33
+- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: XXXXXXXX33
 - **PRD reference:** §3 — "Unlimited Monthly costs a flat ₹3,000, the same on every route."
 
 ### Steps to reproduce
@@ -87,7 +87,7 @@ The price appears route-dependent (calculated as `no_of_rides × cost_per_ride` 
 - **Severity:** P2
 - **Severity rationale:** PRD promises auto-renew choice at purchase. Without it, a rider who wants auto-renew must know to find and toggle it after buying. The feature's retention benefit (never lapse) is buried.
 - **Area / feature:** Auto-renew / Purchase flow
-- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: 72084***33
+- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: XXXXXXXX33
 - **PRD reference:** §6 — "The rider chooses it at checkout (default OFF) and can change it later from the pack screen."
 
 ### Steps to reproduce
@@ -114,7 +114,7 @@ The Ride Pack tab shows auto-renew controls (pause, cancel, change renewal date)
 - **Severity:** P3
 - **Severity rationale:** Spec gap, not a clear defect. The PRD (v0.9 draft) says route-bound; the app says ride-anywhere. The app's behaviour may be the correct, updated product direction — it gives riders more flexibility, not less. Logging as P3 pending PM confirmation rather than P2, because the rider experience is strictly better if packs work everywhere.
 - **Area / feature:** Pack scope / Route binding
-- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: 72084***33
+- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: XXXXXXXX33
 - **PRD reference:** §2 — "A pack is bound to a route and a pickup → drop stop pair."
 
 ### Steps to reproduce
@@ -146,7 +146,7 @@ This may be an intentional product change from the PRD (v0.9) — the pack was m
 - **Severity:** P3
 - **Severity rationale:** Two plans with the same display name but different slugs (`unlimited-rides-30-days` and `unlimited-rides-30-days-44-rides`) could cause incorrect plan selection during auto-renewal or confuse internal tooling. No direct rider-visible impact yet, but a latent data integrity issue.
 - **Area / feature:** Plan configuration
-- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: 72084***33
+- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: XXXXXXXX33
 - **PRD reference:** §4 — only one Unlimited Monthly plan is described.
 
 ### Steps to reproduce
@@ -179,7 +179,7 @@ The `rides_allowed: null` in the autorenew API contrasts with `no_of_rides: 50` 
 - **Severity:** P3
 - **Severity rationale:** The Ride Pack tab uses this API to show auto-renew plan options. All plans have `amount: null`, which could cause the UI to display no price or ₹0 when a rider tries to set up or change auto-renewal. Degraded experience but the lite pack API has correct pricing, so the purchase flow works.
 - **Area / feature:** Auto-renew / Pricing API
-- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: 72084***33
+- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: XXXXXXXX33
 - **PRD reference:** §3, §6
 
 ### Steps to reproduce
@@ -210,7 +210,7 @@ All plans have `"amount": null` and `"per_ride_amount": null`.
 - **Severity:** P4 (scope observation)
 - **Severity rationale:** PRD §9 excludes "Pausing a pack mid-cycle," but the app having more than the PRD specifies is not a defect — it's a scope difference between a v0.9 draft and a live build. Logging as an observation for PM awareness, not a bug to fix.
 - **Area / feature:** Auto-renew / Pause
-- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: 72084***33
+- **Environment:** staging — https://app.cityflostaging.com · Chrome · 2026-11-05 10:50 IST · account: XXXXXXXX33
 - **PRD reference:** §9 — "Pausing a pack mid-cycle" listed as out of scope.
 
 ### Steps to reproduce

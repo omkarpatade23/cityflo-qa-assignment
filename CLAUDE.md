@@ -26,7 +26,7 @@ Requires Chrome installed. On WSL2, run from Windows PowerShell. See README.md f
 
 - **Never commit auth.json** — it contains session tokens and PII.
 - **Sandbox payments only** — never use real UPI apps or cards on staging.
-- **Mask phone numbers** in any committed evidence (use `72084***33`).
+- **Mask phone numbers** in any committed evidence (use `XXXXXXXX33`).
 - **Do not run load/stress tests** — staging is a shared live environment.
 - **Ask before making purchases** — sandbox purchases modify account state.
 

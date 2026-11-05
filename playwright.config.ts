@@ -13,6 +13,6 @@ export default defineConfig({
     channel: "chrome",
     headless: !process.env.HEADED,
     screenshot: "only-on-failure",
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
   },
 });

@@ -4,8 +4,9 @@ import { test, expect } from "@playwright/test";
  * Unlimited Monthly Ride Pack — Core Tests
  *
  * Run:  npx playwright test
- * Env:  Needs Chrome installed. On WSL2, run via PowerShell:
- *       powershell.exe -Command "npx playwright test"
+ * Headed: npx playwright test --headed
+ * Env:  Needs Chrome installed. On WSL2, run from Windows:
+ *       cmd.exe /c "cd /d C:\Users\omkar\Desktop\cityflo-qa-assignment && node node_modules\@playwright\test\cli.js test"
  *
  * OTP approach:
  *   Session persisted via storageState (auth.json), created by logging in
@@ -21,6 +22,55 @@ const PRD_PRICE_UNLIMITED_MONTHLY = 3000; // PRD §3: "flat ₹3,000"
 const PLAN_SLUG_UNLIMITED = "unlimited-rides-30-days";
 const PICKUP_SEARCH_TERM = "Powai";
 const DROPOFF_SEARCH_TERM = "BKC";
+
+/** Ensure pickup and dropoff are set, then click Search and wait for route results. */
+async function searchRoute(page: import("@playwright/test").Page) {
+  // Dismiss any overlay dialogs (office time, seat confirmation) by pressing Escape
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+
+  // If pickup says "Select pickup", we need to set it; if already populated, skip
+  const needsPickup = await page.getByText(/select pickup location/i).first().isVisible().catch(() => false);
+  if (needsPickup) {
+    await page.getByText(/select pickup location/i).first().click();
+    const pickupInput = page.locator("input").first();
+    await expect(pickupInput).toBeVisible({ timeout: 5000 });
+    await pickupInput.fill(PICKUP_SEARCH_TERM);
+    await expect(page.getByText(/Rambaug.*Powai|Bayroute.*Powai/i).first()).toBeVisible({ timeout: 5000 });
+    await page.getByText(/Rambaug.*Powai|Bayroute.*Powai/i).first().click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  const needsDropoff = await page.getByText(/select drop location/i).first().isVisible().catch(() => false);
+  if (needsDropoff) {
+    await page.getByText(/select drop location/i).first().click();
+    const dropInput = page.locator("input").first();
+    await expect(dropInput).toBeVisible({ timeout: 5000 });
+    await dropInput.fill(DROPOFF_SEARCH_TERM);
+    await expect(page.getByText(/Bandra Kurla Complex/i).first()).toBeVisible({ timeout: 5000 });
+    await page.getByText(/Bandra Kurla Complex/i).first().click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  // Click Search and wait for search results page to load
+  await page.getByText(/^search$/i).first().click();
+  await expect(page.getByText(/Search Bus/i).first()).toBeVisible({ timeout: 15000 });
+
+  // If today has no routes (departed), try the next available date tab
+  const hasProceed = await page.getByText(/proceed/i).first().isVisible({ timeout: 5000 }).catch(() => false);
+  if (!hasProceed) {
+    // Click on a future date tab (e.g. "Fri, 6th Nov" or whatever is next)
+    const dateTabs = page.locator("button").filter({ hasText: /\d{1,2}(st|nd|rd|th)\s/i });
+    const tabCount = await dateTabs.count();
+    for (let i = 1; i < tabCount; i++) {
+      await dateTabs.nth(i).click();
+      const found = await page.getByText(/proceed/i).first().isVisible({ timeout: 5000 }).catch(() => false);
+      if (found) break;
+    }
+  }
+
+  await expect(page.getByText(/proceed/i).first()).toBeVisible({ timeout: 10000 });
+}
 
 test.describe("Unlimited Monthly Ride Pack", () => {
   test.describe.configure({ mode: "serial" });
@@ -44,27 +94,7 @@ test.describe("Unlimited Monthly Ride Pack", () => {
   });
 
   test("T2 [B1,B2]: Route search returns results with Pack of rides option", async ({ page }) => {
-    // Set pickup
-    await page.getByText(/select pickup|Rambaug.*Powai/i).first().click();
-    await page.waitForTimeout(1000);
-    const pickupInput = page.locator("input").first();
-    await pickupInput.fill(PICKUP_SEARCH_TERM);
-    await expect(page.getByText(/Rambaug.*Powai|Bayroute.*Powai/i).first()).toBeVisible({ timeout: 5000 });
-    await page.getByText(/Rambaug.*Powai|Bayroute.*Powai/i).first().click();
-    await page.waitForLoadState("networkidle");
-
-    // Set dropoff
-    await page.getByText(/select drop/i).first().click();
-    await page.waitForTimeout(1000);
-    const dropInput = page.locator("input").first();
-    await dropInput.fill(DROPOFF_SEARCH_TERM);
-    await expect(page.getByText(/Bandra Kurla Complex/i).first()).toBeVisible({ timeout: 5000 });
-    await page.getByText(/Bandra Kurla Complex/i).first().click();
-    await page.waitForLoadState("networkidle");
-
-    // Search
-    await page.getByText(/^search$/i).first().click({ force: true });
-    await expect(page.getByText(/proceed/i).first()).toBeVisible({ timeout: 10000 });
+    await searchRoute(page);
 
     // Click Proceed on first route → should show booking type
     await page.getByText(/proceed/i).first().click({ force: true });
@@ -74,36 +104,21 @@ test.describe("Unlimited Monthly Ride Pack", () => {
   // BUG-001: no_of_rides should be null (unlimited) — currently 50
   // BUG-002: total_cost should be ₹3,000 — currently ₹5,700
   test.fail("T3 [C5,H1,D4]: Unlimited Monthly — ride cap and price match PRD", async ({ page }) => {
-    // Capture the lite-pack API response
+    // Set up API interception BEFORE triggering navigation
     const responsePromise = page.waitForResponse(
       (r) => r.url().includes("get-lite-pack-details-with-plans") && r.status() === 200
     );
 
-    // Navigate: search → route → pack of rides
-    await page.getByText(/select pickup|Rambaug.*Powai/i).first().click();
-    await page.waitForTimeout(1000);
-    await page.locator("input").first().fill(PICKUP_SEARCH_TERM);
-    await expect(page.getByText(/Rambaug.*Powai|Bayroute.*Powai/i).first()).toBeVisible({ timeout: 5000 });
-    await page.getByText(/Rambaug.*Powai|Bayroute.*Powai/i).first().click();
-    await page.waitForLoadState("networkidle");
+    await searchRoute(page);
 
-    await page.getByText(/select drop/i).first().click();
-    await page.waitForTimeout(1000);
-    await page.locator("input").first().fill(DROPOFF_SEARCH_TERM);
-    await expect(page.getByText(/Bandra Kurla Complex/i).first()).toBeVisible({ timeout: 5000 });
-    await page.getByText(/Bandra Kurla Complex/i).first().click();
-    await page.waitForLoadState("networkidle");
-
-    await page.getByText(/^search$/i).first().click({ force: true });
-    await expect(page.getByText(/proceed/i).first()).toBeVisible({ timeout: 10000 });
-
+    // Route → booking type
     await page.getByText(/proceed/i).first().click({ force: true });
     await expect(page.getByText(/Pack of rides/i)).toBeVisible({ timeout: 10000 });
 
     // Click Proceed on Pack of rides to load plans
     await page.getByText(/proceed/i).first().click({ force: true });
 
-    // Wait for API response deterministically (no race)
+    // Wait for API response deterministically
     const response = await responsePromise;
     const litePackData = await response.json();
 
